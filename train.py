@@ -1,18 +1,22 @@
 import torch
 import torch.nn.functional as F
 from torch.autograd import Variable
+from torch.utils.data import DataLoader
+import torchvision.transforms as transforms
 
 import numpy as np
 import pdb, os, argparse
 from datetime import datetime
 
+from gts_folder import ImageGroundTruthFolder
 from model.CPD_models import CPD_VGG
 from model.CPD_ResNet_models import CPD_ResNet
-from data import get_loader
 from utils import clip_gradient, adjust_lr
 
 
 parser = argparse.ArgumentParser()
+parser.add_argument('--datasets_path', type=str, default='./datasets', help='path to datasets')
+parser.add_argument('--cuda', type=bool, default=True, help='run with cuda')
 parser.add_argument('--epoch', type=int, default=100, help='epoch number')
 parser.add_argument('--lr', type=float, default=1e-4, help='learning rate')
 parser.add_argument('--batchsize', type=int, default=10, help='training batch size')
@@ -30,13 +34,22 @@ if opt.is_ResNet:
 else:
     model = CPD_VGG()
 
-model.cuda()
+if opt.cuda:
+    model.cuda()
 params = model.parameters()
 optimizer = torch.optim.Adam(params, opt.lr)
 
-image_root = 'path1'
-gt_root = 'path2'
-train_loader = get_loader(image_root, gt_root, batchsize=opt.batchsize, trainsize=opt.trainsize)
+transform = transforms.Compose([
+            transforms.Resize((opt.trainsize, opt.trainsize)),
+            transforms.ToTensor(),
+            transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225])])
+
+gt_transform = transforms.Compose([
+            transforms.Resize((opt.trainsize, opt.trainsize)),
+            transforms.ToTensor()])
+
+dataset = ImageGroundTruthFolder(opt.datasets_path, transform=transform, target_transform=gt_transform)
+train_loader = DataLoader(dataset, batch_size=opt.batchsize, shuffle=True)
 total_step = len(train_loader)
 
 CE = torch.nn.BCEWithLogitsLoss()
@@ -49,8 +62,9 @@ def train(train_loader, model, optimizer, epoch):
         images, gts = pack
         images = Variable(images)
         gts = Variable(gts)
-        images = images.cuda()
-        gts = gts.cuda()
+        if opt.cuda:
+            images = images.cuda()
+            gts = gts.cuda()
 
         atts, dets = model(images)
         loss1 = CE(atts, gts)

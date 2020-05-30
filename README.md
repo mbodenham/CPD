@@ -1,9 +1,20 @@
 # Cascaded Partial Decoder for Fast and Accurate Salient Object Detection (CVPR2019)
 
 # Changelog
+## 1.1 - 2019-05-30
+### Added
+- gts_folder.py - New torchvision dataset. Loads images from multiple datasets
+- train.py - Dataset root parser argument
+- train.py - CUDA parser argument
+
+### Changed
+
+- train.py - train_loader now uses new trochvison dataset
+
+
 ## 1.0 - 2019-05-26
 ### Added
-- vgg.py - Pytorch Hub to fetch pre-trained VGG16 model
+- vgg.py - PyTorch Hub to fetch pre-trained VGG-16 model
 - test_CPD.py - Use CUDA only if available
 - test_CPD.py - Progress print out
 
