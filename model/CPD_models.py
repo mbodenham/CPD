@@ -131,3 +131,28 @@ class CPD_VGG(nn.Module):
         detection = self.agg2(x5_2, x4_2, x3_2)
 
         return self.upsample(attention), self.upsample(detection)
+
+class CPD_VGG_attention(nn.Module):
+    def __init__(self, channel=32):
+        super(CPD_VGG_attention, self).__init__()
+        self.vgg = B2_VGG()
+        self.rfb3_1 = RFB(256, channel)
+        self.rfb4_1 = RFB(512, channel)
+        self.rfb5_1 = RFB(512, channel)
+        self.agg1 = aggregation(channel)
+        self.upsample = nn.Upsample(scale_factor=4, mode='bilinear', align_corners=False)
+
+    def forward(self, x):
+        x1 = self.vgg.conv1(x)
+        x2 = self.vgg.conv2(x1)
+        x3 = self.vgg.conv3(x2)
+
+        x3_1 = x3
+        x4_1 = self.vgg.conv4_1(x3_1)
+        x5_1 = self.vgg.conv5_1(x4_1)
+        x3_1 = self.rfb3_1(x3_1)
+        x4_1 = self.rfb4_1(x4_1)
+        x5_1 = self.rfb5_1(x5_1)
+        attention = self.agg1(x5_1, x4_1, x3_1)
+
+        return self.upsample(attention)

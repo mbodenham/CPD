@@ -1,6 +1,19 @@
 # Cascaded Partial Decoder for Fast and Accurate Salient Object Detection (CVPR2019)
 
 # Changelog
+
+## 1.2 - 2019-05-31
+### Added
+- model/CPD_model.py - VGG16 model with only the attention branch
+
+### Changed
+- train.py - Now able to train attention only model
+- train.py - Organised parse argument names to be more clear
+
+### Fixed
+- gts_folder.py - Error with os.walk
+
+
 ## 1.1 - 2019-05-30
 ### Added
 - gts_folder.py - New torchvision dataset. Loads images from multiple datasets
@@ -8,7 +21,6 @@
 - train.py - CUDA parser argument
 
 ### Changed
-
 - train.py - train_loader now uses new trochvison dataset
 
 
@@ -19,7 +31,6 @@
 - test_CPD.py - Progress print out
 
 ### Changed
-
 - test_CPD.py - Corrected dataset paths
 
 ### Fixed

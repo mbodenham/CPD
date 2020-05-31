@@ -42,8 +42,8 @@ def make_dataset(directory, class_to_idx, extensions=None, is_valid_file=None):
         gts_target_dir = os.path.join(directory, target_class, 'gts')
         if not os.path.isdir(imgs_target_dir) or not os.path.isdir(gts_target_dir):
             continue
-        [(imgs_root, _, _imgs_fnames)] = sorted(os.walk(imgs_target_dir, followlinks=True))
-        [(gts_root, _, _gts_fnames)] = sorted(os.walk(gts_target_dir, followlinks=True))
+        (imgs_root, _imgs_fnames) = [(i, k) for i, _, k in os.walk(imgs_target_dir, followlinks=True)][0]
+        (gts_root, _gts_fnames) = [(i, k) for i, _, k in os.walk(gts_target_dir, followlinks=True)][0]
         imgs_fnames = sorted([x for x in _imgs_fnames if is_valid_file(x)])
         gts_fnames = sorted([x for x in _gts_fnames if is_valid_file(x)])
         if len(imgs_fnames) != len(gts_fnames):
