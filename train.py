@@ -13,10 +13,10 @@ from model.CPD_ResNet_models import CPD_ResNet
 from utils import clip_gradient, adjust_lr
 
 parser = argparse.ArgumentParser()
-parser.add_argument('--datasets_path', type=str, default='./datasets', help='path to datasets')
-parser.add_argument('--cuda', type=bool, default=False, help='run with cuda')
-parser.add_argument('--attention', type=bool, default=True)
-parser.add_argument('--resnet', type=bool, default=False, help='VGG or ResNet backbone')
+parser.add_argument('--datasets_path', default='./datasets', help='path to datasets')
+parser.add_argument('--cuda', default='cuda', help='run with cuda')
+parser.add_argument('--attention', action='store_true')
+parser.add_argument('--resnet', action='store_true', help='VGG or ResNet backbone')
 parser.add_argument('--epoch', type=int, default=100, help='epoch number')
 parser.add_argument('--lr', type=float, default=1e-4, help='learning rate')
 parser.add_argument('--batch_size', type=int, default=10, help='training batch size')
@@ -36,10 +36,9 @@ def train(train_loader, model, optimizer, epoch):
         images, gts = pack
         images = Variable(images)
         gts = Variable(gts)
-        if opt.cuda:
+        if opt.cuda == 'cuda':
             images = images.cuda()
             gts = gts.cuda()
-
         if opt.attention:
             atts = model(images)
             loss = CE(atts, gts)
@@ -81,12 +80,12 @@ if opt.resnet:
     print('Loaded ResNet')
 elif opt.attention:
     model = CPD_VGG_attention()
-    print('Loaded VGG Attention Brach Only')
+    print('Loaded VGG attention')
 else:
     model = CPD_VGG()
     print('Loaded VGG')
 
-if opt.cuda:
+if opt.cuda == 'cuda':
     model.cuda()
 params = model.parameters()
 optimizer = torch.optim.Adam(params, opt.lr)
