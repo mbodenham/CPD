@@ -182,8 +182,6 @@ class ImageGroundTruthFolder(DatasetFolder):
     """A data loader for images and their ground truths from multiple datasets where the images are arranged in this way: ::
         root/<dataset>/imgs/xxx.png
         root/<dataset>/gts/xxx.png
-        root/PASCAL-S/imgs/0001.png
-        root/PASCAL-S/gtss/0001.png
         root/DUTS/imgs/abc.png
         root/DUTS/gtss/abc.png
     Args:
