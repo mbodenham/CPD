@@ -14,7 +14,7 @@ from utils import clip_gradient, adjust_lr
 
 parser = argparse.ArgumentParser()
 parser.add_argument('--datasets_path', default='./datasets/train', help='path to datasets')
-parser.add_argument('--cuda', default='gpu', help='run with cuda')
+parser.add_argument('--cuda', default='cuda', help='run with cuda')
 parser.add_argument('--attention', action='store_true', help='attention branch model')
 parser.add_argument('--resnet', action='store_true', help='VGG or ResNet backbone')
 parser.add_argument('--epoch', type=int, default=100, help='epoch number')
@@ -75,6 +75,7 @@ elif opt.attention:
     model = CPD_VGG_attention()
 else:
     model = CPD_VGG()
+print('Loaded', model.name)
 
 if opt.cuda == 'cuda':
     model.cuda()
