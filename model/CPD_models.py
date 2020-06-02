@@ -95,6 +95,7 @@ class aggregation(nn.Module):
 class CPD_VGG(nn.Module):
     def __init__(self, channel=32):
         super(CPD_VGG, self).__init__()
+        self.name = 'CPD'
         self.vgg = B2_VGG()
         self.rfb3_1 = RFB(256, channel)
         self.rfb4_1 = RFB(512, channel)
@@ -135,6 +136,7 @@ class CPD_VGG(nn.Module):
 class CPD_VGG_attention(nn.Module):
     def __init__(self, channel=32):
         super(CPD_VGG_attention, self).__init__()
+        self.name = 'CPD-A'
         self.vgg = B2_VGG()
         self.rfb3_1 = RFB(256, channel)
         self.rfb4_1 = RFB(512, channel)
