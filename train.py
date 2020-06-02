@@ -13,9 +13,9 @@ from model.CPD_ResNet_models import CPD_ResNet
 from utils import clip_gradient, adjust_lr
 
 parser = argparse.ArgumentParser()
-parser.add_argument('--datasets_path', default='./datasets', help='path to datasets')
-parser.add_argument('--cuda', default='cuda', help='run with cuda')
-parser.add_argument('--attention', action='store_true')
+parser.add_argument('--datasets_path', default='./datasets/train', help='path to datasets')
+parser.add_argument('--cuda', default='gpu', help='run with cuda')
+parser.add_argument('--attention', action='store_true', help='attention branch model')
 parser.add_argument('--resnet', action='store_true', help='VGG or ResNet backbone')
 parser.add_argument('--epoch', type=int, default=100, help='epoch number')
 parser.add_argument('--lr', type=float, default=1e-4, help='learning rate')
@@ -61,29 +61,20 @@ def train(train_loader, model, optimizer, epoch):
                 print('{} Epoch [{:03d}/{:03d}], Step [{:04d}/{:04d}], Attention loss: {:.4f}, Detection loss: {:0.4f}'.
                       format(datetime.now(), epoch, opt.epoch, i, total_step, loss1.data, loss2.data))
 
-    if opt.resnet:
-        save_path = 'models/CPD_Resnet/'
-    elif opt.attention:
-        save_path = 'models/CPD_VGG_A/'
-    else:
-        save_path = 'models/CPD_VGG/'
-
+    save_path = 'models/{}/'.format(model.name)
     if not os.path.exists(save_path):
         os.makedirs(save_path)
     if (epoch+1) % 5 == 0:
-        torch.save(model.state_dict(), save_path + 'CPD.pth' + '.%03d' % epoch)
+        torch.save(model.state_dict(), '{}{}.pth.{%03d}'.format(save_path, mode.name, epoch))
 
 print('CUDA GPU available: {}'.format(torch.cuda.is_available()))
 # build models
 if opt.resnet:
     model = CPD_ResNet()
-    print('Loaded ResNet')
 elif opt.attention:
     model = CPD_VGG_attention()
-    print('Loaded VGG attention')
 else:
     model = CPD_VGG()
-    print('Loaded VGG')
 
 if opt.cuda == 'cuda':
     model.cuda()
