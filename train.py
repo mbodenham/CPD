@@ -65,7 +65,7 @@ def train(train_loader, model, optimizer, epoch):
     if not os.path.exists(save_path):
         os.makedirs(save_path)
     if (epoch+1) % 5 == 0:
-        torch.save(model.state_dict(), '{}{}.pth.{%03d}'.format(save_path, model.name, epoch))
+        torch.save(model.state_dict(), '{}{}.pth.{:03d}'.format(save_path, model.name, epoch))
 
 print('CUDA GPU available: {}'.format(torch.cuda.is_available()))
 # build models
