@@ -92,9 +92,9 @@ class aggregation(nn.Module):
         return x
 
 
-class CPD_VGG(nn.Module):
+class CPD(nn.Module):
     def __init__(self, channel=32):
-        super(CPD_VGG, self).__init__()
+        super(CPD, self).__init__()
         self.name = 'CPD'
         self.vgg = B2_VGG()
         self.rfb3_1 = RFB(256, channel)
@@ -133,9 +133,9 @@ class CPD_VGG(nn.Module):
 
         return self.upsample(attention), self.upsample(detection)
 
-class CPD_VGG_attention(nn.Module):
+class CPD_A(nn.Module):
     def __init__(self, channel=32):
-        super(CPD_VGG_attention, self).__init__()
+        super(CPD_A, self).__init__()
         self.name = 'CPD-A'
         self.vgg = B2_VGG()
         self.rfb3_1 = RFB(256, channel)
