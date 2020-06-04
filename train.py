@@ -13,7 +13,7 @@ from model.dataset import ImageGroundTruthFolder
 
 parser = argparse.ArgumentParser()
 parser.add_argument('--datasets_path', default='./datasets/train', help='path to datasets, default = ./datasets/train')
-parser.add_argument('--device', default='cpu', choices=['cuda', 'cpu'], help='use cuda or cpu, default = cuda')
+parser.add_argument('--device', default='cuda', choices=['cuda', 'cpu'], help='use cuda or cpu, default = cuda')
 parser.add_argument('--attention', action='store_true', help='use attention branch model')
 parser.add_argument('--imgres', type=int, default=352, help='image input and output resolution, default = 352')
 parser.add_argument('--epoch', type=int, default=100, help='number of epochs,  default = 100')
@@ -31,9 +31,8 @@ def train(train_loader, model, optimizer, epoch):
     for step, pack in enumerate(train_loader, start=1):
         optimizer.zero_grad()
         images, gts, _, _, _ = pack
-        if device == 'cuda':
-            images = images.cuda()
-            gts = gts.cuda()
+        images = images.to(device)
+        gts = gts.to(device)
         if args.attention:
             atts = model(images)
             loss = CE(atts, gts)
@@ -65,9 +64,9 @@ device = torch.device(args.device)
 print('Device: {}'.format(device))
 
 if args.attention:
-    model = CPD_A()
+    model = CPD_A().to(device)
 else:
-    model = CPD()
+    model = CPD().to(device)
 print('Model:', model.name)
 
 optimizer = torch.optim.Adam(model.parameters(), args.lr)

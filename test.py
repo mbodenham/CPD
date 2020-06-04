@@ -25,9 +25,9 @@ else:
     device = torch.device('cpu')
 
 if args.attention:
-    model = CPD_A()
+    model = CPD_A().to(device)
 else:
-    model = CPD()
+    model = CPD().to(device)
 
 model.load_state_dict(torch.load(args.pth, map_location=torch.device(device)))
 model.eval()
@@ -49,8 +49,7 @@ for pack in test_loader:
     print('{} - {}'.format(dataset[0], img_name[0]))
     gt = np.asarray(gt, np.float32)
     gt /= (gt.max() + 1e-8)
-    if device == 'cuda':
-        image = image.cuda()
+    image = image.to(device)
 
     if args.attention:
         res = model(image)
