@@ -36,13 +36,13 @@ def train(train_loader, model, optimizer, epoch, writer):
         imgs = imgs.to(device)
         gts = gts.to(device)
         if args.attention:
-            atts = model(imgs)
-            loss = CE(atts, gts)
+            preds = model(imgs)
+            loss = CE(preds, gts)
             writer.add_scalar('Loss', float(loss), step)
         else:
-            atts, dets = model(imgs)
+            atts, preds = model(imgs)
             att_loss = CE(atts, gts)
-            det_loss = CE(dets, gts)
+            det_loss = CE(preds, gts)
             loss = att_loss + det_loss
             writer.add_scalar('Loss/Attention Loss', float(att_loss), step)
             writer.add_scalar('Loss/Detection Loss', float(det_loss), step)
@@ -54,7 +54,8 @@ def train(train_loader, model, optimizer, epoch, writer):
         optimizer.step()
 
         if step % 100 == 0 or step == total_steps:
-            add_image(imgs, gts, dets, step, writer)
+            add_image(imgs, gts, preds, step, writer)
+
             print('{} Epoch [{:03d}/{:03d}], Step [{:04d}/{:04d}], Loss: {:.4f}'.
                   format(datetime.now().strftime('%Y-%m-%d %H:%M:%S'), epoch, args.epoch, step, total_steps, loss.data))
 
