@@ -1,9 +1,6 @@
 import torch
-import torch.nn.functional as F
 import torchvision.transforms as transforms
-from torch.utils.data import DataLoader
-from torch.nn.utils.clip_grad import clip_grad_norm_
-from torch.optim.lr_scheduler import MultiplicativeLR
+import torch.utils.tensorboard  as tensorboard
 
 import os, argparse
 from datetime import datetime
@@ -24,40 +21,47 @@ parser.add_argument('--decay_rate', type=float, default=0.1, help='decay rate of
 parser.add_argument('--decay_epoch', type=int, default=50, help='every n epochs decay learning rate,  default = 50')
 args = parser.parse_args()
 
-def train(train_loader, model, optimizer, epoch):
+def train(train_loader, model, optimizer, epoch, writer):
+    def add_image(imgs, gts, preds, step, writer):
+        writer.add_image('Image', imgs[-1], step)
+        writer.add_image('Groundtruth', gts[-1], step)
+        writer.add_image('Prediction', preds[-1], step)
+
     total_steps = len(train_loader)
     CE = torch.nn.BCEWithLogitsLoss()
     model.train()
     for step, pack in enumerate(train_loader, start=1):
         optimizer.zero_grad()
-        images, gts, _, _, _ = pack
-        images = images.to(device)
+        imgs, gts, _, _, _ = pack
+        imgs = imgs.to(device)
         gts = gts.to(device)
         if args.attention:
-            atts = model(images)
+            atts = model(imgs)
             loss = CE(atts, gts)
+            writer.add_scalar('Loss', float(loss), step)
         else:
-            atts, dets = model(images)
-            loss1 = CE(atts, gts)
-            loss2 = CE(dets, gts)
-            loss = loss1 + loss2
+            atts, dets = model(imgs)
+            att_loss = CE(atts, gts)
+            det_loss = CE(dets, gts)
+            loss = att_loss + det_loss
+            writer.add_scalar('Loss/Attention Loss', float(att_loss), step)
+            writer.add_scalar('Loss/Detection Loss', float(det_loss), step)
+            writer.add_scalar('Loss/Total Loss', float(loss), step)
+
 
         loss.backward()
-        clip_grad_norm_(model.parameters(), args.clip)
+        torch.nn.utils.clip_grad_norm_(model.parameters(), args.clip)
         optimizer.step()
 
         if step % 100 == 0 or step == total_steps:
-            if args.attention:
-                print('{} Epoch [{:03d}/{:03d}], Step [{:04d}/{:04d}], Loss: {:.4f}'.
-                      format(datetime.now(), epoch, args.epoch, step, total_steps, loss.data))
-            else:
-                print('{} Epoch [{:03d}/{:03d}], Step [{:04d}/{:04d}], Attention loss: {:.4f}, Detection loss: {:0.4f}'.
-                      format(datetime.now(), epoch, args.epoch, step, total_steps, loss1.data, loss2.data))
+            add_image(imgs, gts, dets, step, writer)
+            print('{} Epoch [{:03d}/{:03d}], Step [{:04d}/{:04d}], Loss: {:.4f}'.
+                  format(datetime.now().strftime('%Y-%m-%d %H:%M:%S'), epoch, args.epoch, step, total_steps, loss.data))
 
     save_path = 'ckpts/{}/'.format(model.name)
     if not os.path.exists(save_path):
         os.makedirs(save_path)
-    if (epoch+1) % 5 == 0:
+    if epoch % 5 == 0:
         torch.save(model.state_dict(), '{}{}.pth.{:03d}'.format(save_path, model.name, epoch))
 
 device = torch.device(args.device)
@@ -80,10 +84,11 @@ gt_transform = transforms.Compose([
             transforms.ToTensor()])
 
 dataset = ImageGroundTruthFolder(args.datasets_path, transform=transform, target_transform=gt_transform)
-train_loader = DataLoader(dataset, batch_size=args.batch_size, shuffle=True)
+train_loader = torch.utils.data.DataLoader(dataset, batch_size=args.batch_size, shuffle=True)
+writer = tensorboard.SummaryWriter(os.path.join('logs', datetime.now().strftime('%Y%m%d-%H%M%S')))
 print('Dataset loaded successfully')
 for epoch in range(1, args.epoch):
     print('Started epoch {:03d}/{}'.format(epoch, args.epoch))
     lr_lambda = lambda epoch: args.decay_rate ** (epoch // args.decay_epoch)
-    scheduler = MultiplicativeLR(optimizer, lr_lambda=lr_lambda)
-    train(train_loader, model, optimizer, epoch)
+    scheduler = torch.optim.lr_scheduler.MultiplicativeLR(optimizer, lr_lambda=lr_lambda)
+    train(train_loader, model, optimizer, epoch, writer)
