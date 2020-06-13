@@ -45,23 +45,23 @@ dataset = ImageGroundTruthFolder(args.datasets_path, transform=transform, target
 test_loader = DataLoader(dataset, batch_size=1, shuffle=False)
 
 for pack in test_loader:
-    image, gt, dataset, img_name, img_res = pack
+    img, gt, dataset, img_name, img_res = pack
     print('{} - {}'.format(dataset[0], img_name[0]))
     gt = np.asarray(gt, np.float32)
     gt /= (gt.max() + 1e-8)
-    image = image.to(device)
+    img = img.to(device)
 
     if args.attention:
-        res = model(image)
+        pred = model(img)
     else:
-        _, res = model(image)
+        _, pred = model(img)
 
-    res = F.interpolate(res, size=img_res[::-1], mode='bilinear', align_corners=False)
-    res = res.sigmoid().data.cpu()
+    pred = F.interpolate(pred, size=img_res[::-1], mode='bilinear', align_corners=False)
+    pred = pred.sigmoid().data.cpu()
 
     save_path = './results/{}/{}/'.format(model.name, dataset[0])
     if not os.path.exists(save_path):
         os.makedirs(save_path)
 
     filename = '{}{}.png'.format(save_path, img_name[0])
-    utils.save_image(res,  filename)
+    utils.save_image(pred,  filename)

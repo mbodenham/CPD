@@ -31,6 +31,7 @@ def train(train_loader, model, optimizer, epoch, writer):
     CE = torch.nn.BCEWithLogitsLoss()
     model.train()
     for step, pack in enumerate(train_loader, start=1):
+        global_step = (epoch-1) * total_steps + step
         optimizer.zero_grad()
         imgs, gts, _, _, _ = pack
         imgs = imgs.to(device)
@@ -38,24 +39,21 @@ def train(train_loader, model, optimizer, epoch, writer):
         if args.attention:
             preds = model(imgs)
             loss = CE(preds, gts)
-            writer.add_scalar('Loss', float(loss), step)
+            writer.add_scalar('Loss', float(loss), global_step)
         else:
             atts, preds = model(imgs)
             att_loss = CE(atts, gts)
             det_loss = CE(preds, gts)
             loss = att_loss + det_loss
-            writer.add_scalar('Loss/Attention Loss', float(att_loss), step)
-            writer.add_scalar('Loss/Detection Loss', float(det_loss), step)
-            writer.add_scalar('Loss/Total Loss', float(loss), step)
-
-
+            writer.add_scalar('Loss/Attention Loss', float(att_loss), global_step)
+            writer.add_scalar('Loss/Detection Loss', float(det_loss),global_step)
+            writer.add_scalar('Loss/Total Loss', float(loss), global_step)
         loss.backward()
         torch.nn.utils.clip_grad_norm_(model.parameters(), args.clip)
         optimizer.step()
 
         if step % 100 == 0 or step == total_steps:
-            add_image(imgs, gts, preds, step, writer)
-
+            add_image(imgs, gts, preds, global_step, writer)
             print('{} Epoch [{:03d}/{:03d}], Step [{:04d}/{:04d}], Loss: {:.4f}'.
                   format(datetime.now().strftime('%Y-%m-%d %H:%M:%S'), epoch, args.epoch, step, total_steps, loss.data))
 
@@ -72,7 +70,8 @@ if args.attention:
     model = CPD_A().to(device)
 else:
     model = CPD().to(device)
-print('Model:', model.name)
+params = sum(p.numel() for p in model.parameters() if p.requires_grad)
+print('{}\t{}'.format(model.name, params))
 
 optimizer = torch.optim.Adam(model.parameters(), args.lr)
 

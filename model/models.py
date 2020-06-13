@@ -2,7 +2,7 @@ import torch
 import torch.nn as nn
 
 from .HolisticAttention import HA
-from .vgg import B2_VGG
+from .vgg import B2_VGG, B2_VGG_A
 
 
 class RFB(nn.Module):
@@ -109,6 +109,14 @@ class CPD(nn.Module):
 
         self.HA = HA()
         self.upsample = nn.Upsample(scale_factor=4, mode='bilinear', align_corners=False)
+        modules = [self.vgg, self.rfb3_1, self.rfb4_1, self.rfb5_1, self.agg1,
+                   self.rfb3_2, self.rfb4_2, self.rfb5_2, self.agg2, self.HA, self.upsample]
+        modules_names = ['vgg', 'rfb3_1', 'rfb4_1', 'rfb5_1', 'agg1',
+                   'rfb3_2', 'rfb4_2', 'rfb5_2', 'agg2', 'HA', 'upsample']
+        print('Parameters')
+        for module, name in zip(modules, modules_names):
+            params = sum(p.numel() for p in module.parameters() if p.requires_grad)
+            print('{}\t{}'.format(name, params))
 
     def forward(self, x):
         x1 = self.vgg.conv1(x)
@@ -137,12 +145,19 @@ class CPD_A(nn.Module):
     def __init__(self, channel=32):
         super(CPD_A, self).__init__()
         self.name = 'CPD-A'
-        self.vgg = B2_VGG()
+        self.vgg = B2_VGG_A()
         self.rfb3_1 = RFB(256, channel)
         self.rfb4_1 = RFB(512, channel)
         self.rfb5_1 = RFB(512, channel)
         self.agg1 = aggregation(channel)
         self.upsample = nn.Upsample(scale_factor=4, mode='bilinear', align_corners=False)
+
+        modules = [self.vgg, self.rfb3_1, self.rfb4_1, self.rfb5_1, self.agg1, self.upsample]
+        modules_names = ['vgg', 'rfb3_1', 'rfb4_1', 'rfb5_1', 'agg1', 'upsample']
+        print('Parameters')
+        for module, name in zip(modules, modules_names):
+            params = sum(p.numel() for p in module.parameters() if p.requires_grad)
+            print('{}\t{}'.format(name, params))
 
     def forward(self, x):
         x1 = self.vgg.conv1(x)
