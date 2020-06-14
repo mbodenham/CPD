@@ -87,7 +87,7 @@ dataset = ImageGroundTruthFolder(args.datasets_path, transform=transform, target
 train_loader = torch.utils.data.DataLoader(dataset, batch_size=args.batch_size, shuffle=True)
 writer = tensorboard.SummaryWriter(os.path.join('logs', datetime.now().strftime('%Y%m%d-%H%M%S')))
 print('Dataset loaded successfully')
-for epoch in range(1, args.epoch):
+for epoch in range(1, args.epoch+1):
     print('Started epoch {:03d}/{}'.format(epoch, args.epoch))
     lr_lambda = lambda epoch: args.decay_rate ** (epoch // args.decay_epoch)
     scheduler = torch.optim.lr_scheduler.MultiplicativeLR(optimizer, lr_lambda=lr_lambda)
