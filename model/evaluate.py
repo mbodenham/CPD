@@ -16,14 +16,12 @@ class Eval_thread():
         self.datasets = [d.name for d in os.scandir(dir) if d.is_dir()]
         print(self.datasets)
         self.metrics = {ds_name: {} for ds_name in self.datasets}
-        self.logfile = os.path.join(output_dir, 'result.txt')
+
     def run(self):
         start_time = time.time()
         self.MAE()
         self.fmeasure()
         self.smeasure()
-        # max_e = self.Eval_Emeasure()
-        # s = self.Eval_Smeasure()
         return self.metrics
 
     def MAE(self):
@@ -38,7 +36,7 @@ class Eval_thread():
                 if torch.cuda.is_available():
                     pred = pred.cuda()
                     gt = gt.cuda()
-                mae[dataset[0]].append(torch.abs(pred - gt).mean().numpy())
+                mae[dataset[0]].append(torch.abs(pred - gt).mean().cpu().numpy())
 
             for d in self.datasets:
                 self.metrics[d]['MAE'] = np.mean(mae[d])
@@ -61,8 +59,8 @@ class Eval_thread():
                 prec, recall = self._eval_pr(pred, gt, 255)
                 f_score = ((1 + beta2) * prec * recall) / (beta2 * prec + recall)
                 f_score[f_score != f_score] = 0 # for Nan
-                avgF[dataset[0]].append(torch.mean(f_score).numpy())
-                maxF[dataset[0]].append(self._eval_fmax(prec, recall, beta2))
+                avgF[dataset[0]].append(torch.mean(f_score).cpu().numpy())
+                maxF[dataset[0]].append(self._eval_fmax(prec, recall, beta2).cpu())
             for d in self.datasets:
                 self.metrics[d]['avgF'] = np.mean(avgF[d])
                 self.metrics[d]['maxF'] = np.mean(maxF[d])
@@ -119,7 +117,7 @@ class Eval_thread():
                     Q = alpha * self._S_object(pred, gt) + (1-alpha) * self._S_region(pred, gt)
                     if Q.item() < 0:
                         Q = torch.FloatTensor([0.0])
-                S[dataset[0]].append(Q.item())
+                S[dataset[0]].append(Q.item().cpu())
             for d in self.datasets:
                 self.metrics[d]['S'] = np.mean(S[d])
             return self.metrics
