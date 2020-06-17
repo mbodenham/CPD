@@ -118,7 +118,7 @@ class Eval_thread():
                     if Q.item() < 0:
                         Q = torch.FloatTensor([0.0])
 
-                S[dataset[0]].append(Q.cpu().nump())
+                S[dataset[0]].append(Q.cpu().numpy())
             for d in self.datasets:
                 self.metrics[d]['S'] = np.nanmean(S[d])
             return self.metrics
