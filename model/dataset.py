@@ -63,6 +63,44 @@ def make_dataset(directory, dataset_to_idx, extensions=None, is_valid_file=None)
 
     return instances
 
+def make_dataset_eval(directory, preds_directory, dataset_to_idx, extensions=None, is_valid_file=None):
+    instances = []
+    directory = os.path.expanduser(directory)
+    both_none = extensions is None and is_valid_file is None
+    both_something = extensions is not None and is_valid_file is not None
+    if both_none or both_something:
+        raise ValueError("Both extensions and is_valid_file cannot be None or not None at the same time")
+    if extensions is not None:
+        def is_valid_file(x):
+            return has_file_allowed_extension(x, extensions)
+    for target_dataset in sorted(dataset_to_idx.keys()):
+        dataset_index = dataset_to_idx[target_dataset]
+        gts_target_dir = os.path.join(directory, target_dataset, 'gts')
+        preds_target_dir = os.path.join(preds_directory, target_dataset)
+
+        if not os.path.isdir(preds_target_dir) or not os.path.isdir(gts_target_dir):
+            continue
+        (preds_root, _preds_fnames) = [(i, k) for i, _, k in os.walk(preds_target_dir, followlinks=True)][0]
+        (gts_root, _gts_fnames) = [(i, k) for i, _, k in os.walk(gts_target_dir, followlinks=True)][0]
+        preds_fnames = sorted([x for x in _preds_fnames if is_valid_file(x)])
+        gts_fnames = sorted([x for x in _gts_fnames if is_valid_file(x)])
+        if len(preds_fnames) != len(gts_fnames):
+            raise Exception('Number of images and ground truths are not equal. Number of; images: {}, ground turths: {}'.format(len(preds), len(gts)))
+        for fnames in zip(preds_fnames, gts_fnames):
+            pred, gt = fnames
+            pred_name = pred[:pred.find('.')]
+            gt_name = gt[:gt.find('.')]
+            if pred_name != gt_name:
+                raise Exception('Image and ground truth filenames do not match. Filename; image: {}, ground turth: {}'.format(pred, gt))
+
+            pred_path = os.path.join(preds_root, pred)
+            gt_path = os.path.join(gts_root, gt)
+            if is_valid_file(pred_path) and is_valid_file(gt_path):
+                item = pred_path, gt_path, target_dataset, gt_name
+                instances.append(item)
+
+    return instances
+
 
 class DatasetFolder(VisionDataset):
     """A generic data loader where the samples are arranged in this way: ::
@@ -92,12 +130,15 @@ class DatasetFolder(VisionDataset):
         targets (list): The class_index value for each image in the dataset
     """
 
-    def __init__(self, root, loader, extensions=None, transform=None,
-                 target_transform=None, is_valid_file=None):
+    def __init__(self, root, pred_root, loader, extensions=None, transform=None,
+                 target_transform=None, is_valid_file=None, eval=False):
         super(DatasetFolder, self).__init__(root, transform=transform,
                                             target_transform=target_transform)
         datasets, dataset_to_idx = self._find_datasets(self.root)
-        samples = make_dataset(self.root, dataset_to_idx, extensions, is_valid_file)
+        if pred_root is None:
+            samples = make_dataset(self.root, dataset_to_idx, extensions, is_valid_file)
+        else:
+            samples = make_dataset_eval(self.root, pred_root, dataset_to_idx, extensions, is_valid_file)
         if len(samples) == 0:
             msg = "Found 0 files in subfolders of: {}\n".format(self.root)
             if extensions is not None:
@@ -158,7 +199,7 @@ def pil_loader(path):
         img = Image.open(f)
         if 'imgs' in path:
             return img.convert('RGB')
-        elif 'gts' in path:
+        else:
             return img.convert('L')
 
 
@@ -200,9 +241,38 @@ class ImageGroundTruthFolder(DatasetFolder):
         imgs (list): List of (image path, dataset_index) tuples
     """
 
-    def __init__(self, root, transform=None, target_transform=None,
+    def __init__(self, root, pred_root=None, transform=None, target_transform=None,
                  loader=default_loader, is_valid_file=None):
-        super(ImageGroundTruthFolder, self).__init__(root, loader, IMG_EXTENSIONS if is_valid_file is None else None,
+        super(ImageGroundTruthFolder, self).__init__(root, pred_root, loader, IMG_EXTENSIONS if is_valid_file is None else None,
+                                          transform=transform,
+                                          target_transform=target_transform,
+                                          is_valid_file=is_valid_file)
+        self.imgs = self.samples
+
+class EvalImageGroundTruthFolder(DatasetFolder):
+    """A data loader for images and their ground truths from multiple datasets where the images are arranged in this way: ::
+        root/<dataset>/imgs/xxx.png
+        root/<dataset>/gts/xxx.png
+        root/DUTS/imgs/abc.png
+        root/DUTS/gtss/abc.png
+    Args:
+        root (string): Root directory path.
+        transform (callable, optional): A function/transform that  takes in an PIL image
+            and returns a transformed version. E.g, ``transforms.RandomCrop``
+        target_transform (callable, optional): A function/transform that takes in the
+            target and transforms it.
+        loader (callable, optional): A function to load an image given its path.
+        is_valid_file (callable, optional): A function that takes path of an Image file
+            and check if the file is a valid file (used to check of corrupt files)
+     Attributes:
+        datasets (list): List of the dataset names sorted alphabetically.
+        dataset_to_idx (dict): Dict with items (dataset_name, dataset_index).
+        imgs (list): List of (image path, dataset_index) tuples
+    """
+
+    def __init__(self, root, pred_root, transform=None, target_transform=None,
+                 loader=default_loader, is_valid_file=None):
+        super(EvalImageGroundTruthFolder, self).__init__(root, pred_root, loader, IMG_EXTENSIONS if is_valid_file is None else None,
                                           transform=transform,
                                           target_transform=target_transform,
                                           is_valid_file=is_valid_file)
