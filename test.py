@@ -43,15 +43,17 @@ gt_transform = transforms.Compose([
             transforms.ToTensor()])
 
 if args.time:
-    n = 1000
-    input = torch.rand([n, 1, 3, args.imgres, args.imgres]).to(device)
-    t0 = time.time()
-    for img in input:
-        if args.attention:
-            pred = model(img)
-        else:
-            _, pred = model(img)
-    avg_t = (time.time() - t0) / n
+    model.eval()
+    with torch.no_grad():
+        n = 1000
+        input = torch.rand([n, 1, 3, args.imgres, args.imgres]).to(device)
+        t0 = time.time()
+        for img in input:
+            if args.attention:
+                pred = model(img)
+            else:
+                _, pred = model(img)
+        avg_t = (time.time() - t0) / n
     print('Inference time', avg_t)
     print('FPS', 1/avg_t)
 
