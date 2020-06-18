@@ -17,6 +17,7 @@ parser.add_argument('--save_path', type=str, default='./results', help='path to 
 parser.add_argument('--pth', type=str, default='CPD.pth', help='model filename, default = CPD.pth')
 parser.add_argument('--attention', action='store_true', default=False, help='use attention branch model')
 parser.add_argument('--imgres', type=int, default=352, help='image input and output resolution, default = 352')
+parser.add_argument('--time', action='store_true', default=True)
 args = parser.parse_args()
 
 if torch.cuda.is_available():
@@ -41,27 +42,39 @@ gt_transform = transforms.Compose([
             transforms.Resize((args.imgres, args.imgres)),
             transforms.ToTensor()])
 
-dataset = ImageGroundTruthFolder(args.datasets_path, transform=transform, target_transform=gt_transform)
-test_loader = DataLoader(dataset, batch_size=1, shuffle=False)
+if args.time:
+    n = 1000
+    input = torch.rand([n, 1, 3, args.imgres, args.imgres]).to(device)
+    t0 = time.time()
+    for img in input:
+        if args.attention:
+            pred = model(img)
+        else:
+            _, pred = model(img)
+    avg_t = (time.time() - t0) / n
+    print('Inference time', avg_t)
+    print('FPS', 1/avg_t)
 
-for pack in test_loader:
-    img, gt, dataset, img_name, img_res = pack
-    print('{} - {}'.format(dataset[0], img_name[0]))
-    gt = np.asarray(gt, np.float32)
-    gt /= (gt.max() + 1e-8)
-    img = img.to(device)
+else:
+    dataset = ImageGroundTruthFolder(args.datasets_path, transform=transform, target_transform=gt_transform)
+    test_loader = DataLoader(dataset, batch_size=1, shuffle=False)
 
-    if args.attention:
-        pred = model(img)
-    else:
-        _, pred = model(img)
+    for pack in test_loader:
+        img, _, dataset, img_name, img_res = pack
+        print('{} - {}'.format(dataset[0], img_name[0]))
+        img = img.to(device)
 
-    pred = F.interpolate(pred, size=img_res[::-1], mode='bilinear', align_corners=False)
-    pred = pred.sigmoid().data.cpu()
+        if args.attention:
+            pred = model(img)
+        else:
+            _, pred = model(img)
 
-    save_path = './results/{}/{}/'.format(model.name, dataset[0])
-    if not os.path.exists(save_path):
-        os.makedirs(save_path)
+        pred = F.interpolate(pred, size=img_res[::-1], mode='bilinear', align_corners=False)
+        pred = pred.sigmoid().data.cpu()
 
-    filename = '{}{}.png'.format(save_path, img_name[0])
-    utils.save_image(pred,  filename)
+        save_path = './results/{}/{}/'.format(model.name, dataset[0])
+        if not os.path.exists(save_path):
+            os.makedirs(save_path)
+
+        filename = '{}{}.png'.format(save_path, img_name[0])
+        utils.save_image(pred,  filename)
