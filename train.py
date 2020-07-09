@@ -70,10 +70,10 @@ print('Device: {}'.format(device))
 if args.attention:
     model = CPD_A().to(device)
 elif args.darknet:
-    model = CPD_darknet.to(device)
+    model = CPD_darknet().to(device)
 else:
     model = CPD().to(device)
-    
+
 params = sum(p.numel() for p in model.parameters() if p.requires_grad)
 print('{}\t{}'.format(model.name, params))
 
