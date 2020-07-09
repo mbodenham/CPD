@@ -18,7 +18,7 @@ parser.add_argument('--pth', type=str, default='CPD.pth', help='model filename, 
 parser.add_argument('--attention', action='store_true', default=False, help='use attention branch model')
 parser.add_argument('--darknet', action='store_true', help='use darknet backbone')
 parser.add_argument('--imgres', type=int, default=352, help='image input and output resolution, default = 352')
-parser.add_argument('--time', action='store_true', default=True)
+parser.add_argument('--time', action='store_true', default=False)
 args = parser.parse_args()
 
 if torch.cuda.is_available():
@@ -29,7 +29,7 @@ else:
 if args.attention:
     model = CPD_A().to(device)
 elif args.darknet:
-    model = CPD_darknet.to(device)
+    model = CPD_darknet().to(device)
 else:
     model = CPD().to(device)
 

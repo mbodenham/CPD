@@ -5,7 +5,7 @@ import torch.utils.tensorboard  as tensorboard
 import os, argparse
 from datetime import datetime
 
-from model.models import CPD, CPD_A, CPD_darknet
+from model.models import CPD, CPD_A, CPD_darknet, CPD_darknet_A
 from model.dataset import ImageGroundTruthFolder
 
 parser = argparse.ArgumentParser()
@@ -71,6 +71,8 @@ if args.attention:
     model = CPD_A().to(device)
 elif args.darknet:
     model = CPD_darknet().to(device)
+elif arg.attention and args.darknet:
+    model = CPD_darknet_A().to(device)
 else:
     model = CPD().to(device)
 
