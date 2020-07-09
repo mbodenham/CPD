@@ -9,13 +9,14 @@ import numpy as np
 import pdb, os, argparse
 
 from model.dataset import ImageGroundTruthFolder
-from model.models import CPD, CPD_A
+from model.models import CPD, CPD_A, CPD_darknet
 
 parser = argparse.ArgumentParser()
 parser.add_argument('--datasets_path', type=str, default='./datasets/test', help='path to datasets, default = ./datasets/test')
 parser.add_argument('--save_path', type=str, default='./results', help='path to save results, default = ./results')
 parser.add_argument('--pth', type=str, default='CPD.pth', help='model filename, default = CPD.pth')
 parser.add_argument('--attention', action='store_true', default=False, help='use attention branch model')
+parser.add_argument('--darknet', action='store_true', help='use darknet backbone')
 parser.add_argument('--imgres', type=int, default=352, help='image input and output resolution, default = 352')
 parser.add_argument('--time', action='store_true', default=True)
 args = parser.parse_args()
@@ -27,6 +28,8 @@ else:
 
 if args.attention:
     model = CPD_A().to(device)
+elif args.darknet:
+    model = CPD_darknet.to(device)
 else:
     model = CPD().to(device)
 

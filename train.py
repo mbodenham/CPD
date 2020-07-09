@@ -5,20 +5,21 @@ import torch.utils.tensorboard  as tensorboard
 import os, argparse
 from datetime import datetime
 
-from model.models import CPD, CPD_A
+from model.models import CPD, CPD_A, CPD_darknet
 from model.dataset import ImageGroundTruthFolder
 
 parser = argparse.ArgumentParser()
 parser.add_argument('--datasets_path', default='./datasets/train', help='path to datasets, default = ./datasets/train')
 parser.add_argument('--device', default='cuda', choices=['cuda', 'cpu'], help='use cuda or cpu, default = cuda')
 parser.add_argument('--attention', action='store_true', help='use attention branch model')
+parser.add_argument('--darknet', action='store_true', help='use darknet backbone')
 parser.add_argument('--imgres', type=int, default=352, help='image input and output resolution, default = 352')
 parser.add_argument('--epoch', type=int, default=100, help='number of epochs,  default = 100')
 parser.add_argument('--lr', type=float, default=1e-4, help='learning rate,  default = 0.0001')
 parser.add_argument('--batch_size', type=int, default=10, help='training batch size,  default = 10')
 parser.add_argument('--clip', type=float, default=0.5, help='gradient clipping margin, default = 0.5')
 parser.add_argument('--decay_rate', type=float, default=0.1, help='decay rate of learning rate, default = 0.1')
-parser.add_argument('--decay_epoch', type=int, default=50, help='every n epochs decay learning rate,  default = 50')
+parser.add_argument('--decay_epoch', type=int, default=30, help='every n epochs decay learning rate,  default = 50')
 args = parser.parse_args()
 
 def train(train_loader, model, optimizer, epoch, writer):
@@ -68,8 +69,11 @@ print('Device: {}'.format(device))
 
 if args.attention:
     model = CPD_A().to(device)
+elif args.darknet:
+    model = CPD_darknet.to(device)
 else:
     model = CPD().to(device)
+    
 params = sum(p.numel() for p in model.parameters() if p.requires_grad)
 print('{}\t{}'.format(model.name, params))
 
