@@ -9,7 +9,7 @@ import numpy as np
 import pdb, os, argparse
 
 from model.dataset import ImageGroundTruthFolder
-from model.models import CPD, CPD_A, CPD_darknet
+from model.models import CPD, CPD_A, CPD_darknet19, CPD_darknet19_A
 
 parser = argparse.ArgumentParser()
 parser.add_argument('--datasets_path', type=str, default='./datasets/test', help='path to datasets, default = ./datasets/test')
@@ -53,14 +53,16 @@ if args.time:
         n = 1000
         input = torch.rand([n, 1, 3, args.imgres, args.imgres]).to(device)
         t0 = time.time()
-        for img in input:
-            if args.attention:
-                pred = model(img)
-            else:
-                _, pred = model(img)
+        with torch.autograd.profiler.profile() as prof:
+            for img in input:
+                if args.attention:
+                    pred = model(img)
+                else:
+                    _, pred = model(img)
         avg_t = (time.time() - t0) / n
     print('Inference time', avg_t)
     print('FPS', 1/avg_t)
+    print(prof.key_averages().table(sort_by="self_cpu_time_total"))
 
 else:
     dataset = ImageGroundTruthFolder(args.datasets_path, transform=transform, target_transform=gt_transform)

@@ -5,21 +5,20 @@ import torch.utils.tensorboard  as tensorboard
 import os, argparse
 from datetime import datetime
 
-from model.models import CPD, CPD_A, CPD_darknet, CPD_darknet_A
+from model.models import CPD, CPD_A, CPD_darknet19, CPD_darknet19_A, CPD_darknet_A
 from model.dataset import ImageGroundTruthFolder
 
 parser = argparse.ArgumentParser()
 parser.add_argument('--datasets_path', default='./datasets/train', help='path to datasets, default = ./datasets/train')
 parser.add_argument('--device', default='cuda', choices=['cuda', 'cpu'], help='use cuda or cpu, default = cuda')
-parser.add_argument('--attention', action='store_true', help='use attention branch model')
-parser.add_argument('--darknet', action='store_true', help='use darknet backbone')
+parser.add_argument('--model', default='CPD', choices=['CPD', 'CPD_A', 'CPD_darknet19', 'CPD_darknet19_A', 'CPD_darknet_A'], help='chose model, default = cuda')
 parser.add_argument('--imgres', type=int, default=352, help='image input and output resolution, default = 352')
 parser.add_argument('--epoch', type=int, default=100, help='number of epochs,  default = 100')
 parser.add_argument('--lr', type=float, default=1e-4, help='learning rate,  default = 0.0001')
 parser.add_argument('--batch_size', type=int, default=10, help='training batch size,  default = 10')
 parser.add_argument('--clip', type=float, default=0.5, help='gradient clipping margin, default = 0.5')
 parser.add_argument('--decay_rate', type=float, default=0.1, help='decay rate of learning rate, default = 0.1')
-parser.add_argument('--decay_epoch', type=int, default=30, help='every n epochs decay learning rate,  default = 50')
+parser.add_argument('--decay_epoch', type=int, default=30, help='every n epochs decay learning rate,  default = 30')
 args = parser.parse_args()
 
 def train(train_loader, model, optimizer, epoch, writer):
@@ -56,7 +55,7 @@ def train(train_loader, model, optimizer, epoch, writer):
         if step % 100 == 0 or step == total_steps:
             print('{} Epoch [{:03d}/{:03d}], Step [{:04d}/{:04d}], Loss: {:.4f}'.
                   format(datetime.now().strftime('%Y-%m-%d %H:%M:%S'), epoch, args.epoch, step, total_steps, loss.data))
-                  
+
     add_image(imgs, gts, preds, global_step, writer)
     save_path = 'ckpts/{}/'.format(model.name)
     if not os.path.exists(save_path):
@@ -67,14 +66,16 @@ def train(train_loader, model, optimizer, epoch, writer):
 device = torch.device(args.device)
 print('Device: {}'.format(device))
 
-if args.attention and args.darknet:
-    model = CPD_darknet_A().to(device)
-elif args.attention:
-    model = CPD_A().to(device)
-elif args.darknet:
-    model = CPD_darknet().to(device)
-else:
+if args.model == 'CPD':
     model = CPD().to(device)
+elif args.model == 'CPD_A':
+    model = CPD_A().to(device)
+elif args.model == 'CPD_darknet19':
+    model = CPD_darknet19().to(device)
+elif args.model == 'CPD_darknet19_A':
+    model = CPD_darknet19_A().to(device)
+elif args.model == 'CPD_darknet_A':
+    model = CPD_darknet_A().to(device)
 
 params = sum(p.numel() for p in model.parameters() if p.requires_grad)
 print('{}\t{}'.format(model.name, params))
