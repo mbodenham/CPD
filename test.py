@@ -26,7 +26,9 @@ if torch.cuda.is_available():
 else:
     device = torch.device('cpu')
 
-if args.attention:
+if args.attention and args.darknet:
+    model = CPD_darknet_A().to(device)
+elif args.attention:
     model = CPD_A().to(device)
 elif args.darknet:
     model = CPD_darknet().to(device)

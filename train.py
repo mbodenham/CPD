@@ -54,10 +54,10 @@ def train(train_loader, model, optimizer, epoch, writer):
         optimizer.step()
 
         if step % 100 == 0 or step == total_steps:
-            add_image(imgs, gts, preds, global_step, writer)
             print('{} Epoch [{:03d}/{:03d}], Step [{:04d}/{:04d}], Loss: {:.4f}'.
                   format(datetime.now().strftime('%Y-%m-%d %H:%M:%S'), epoch, args.epoch, step, total_steps, loss.data))
-
+                  
+    add_image(imgs, gts, preds, global_step, writer)
     save_path = 'ckpts/{}/'.format(model.name)
     if not os.path.exists(save_path):
         os.makedirs(save_path)
@@ -67,12 +67,12 @@ def train(train_loader, model, optimizer, epoch, writer):
 device = torch.device(args.device)
 print('Device: {}'.format(device))
 
-if args.attention:
+if args.attention and args.darknet:
+    model = CPD_darknet_A().to(device)
+elif args.attention:
     model = CPD_A().to(device)
 elif args.darknet:
     model = CPD_darknet().to(device)
-elif arg.attention and args.darknet:
-    model = CPD_darknet_A().to(device)
 else:
     model = CPD().to(device)
 
@@ -91,7 +91,7 @@ gt_transform = transforms.Compose([
 
 dataset = ImageGroundTruthFolder(args.datasets_path, transform=transform, target_transform=gt_transform)
 train_loader = torch.utils.data.DataLoader(dataset, batch_size=args.batch_size, shuffle=True)
-writer = tensorboard.SummaryWriter(os.path.join('logs', datetime.now().strftime('%Y%m%d-%H%M%S')))
+writer = tensorboard.SummaryWriter(os.path.join('logs', model.name, datetime.now().strftime('%Y%m%d-%H%M%S')))
 print('Dataset loaded successfully')
 for epoch in range(1, args.epoch+1):
     print('Started epoch {:03d}/{}'.format(epoch, args.epoch))
