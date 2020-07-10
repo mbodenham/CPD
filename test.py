@@ -15,16 +15,15 @@ parser = argparse.ArgumentParser()
 parser.add_argument('--datasets_path', type=str, default='./datasets/test', help='path to datasets, default = ./datasets/test')
 parser.add_argument('--save_path', type=str, default='./results', help='path to save results, default = ./results')
 parser.add_argument('--pth', type=str, default='CPD.pth', help='model filename, default = CPD.pth')
+parser.add_argument('--device', default='cuda', choices=['cuda', 'cpu'], help='use cuda or cpu, default = cuda')
 parser.add_argument('--attention', action='store_true', default=False, help='use attention branch model')
 parser.add_argument('--darknet', action='store_true', help='use darknet backbone')
 parser.add_argument('--imgres', type=int, default=352, help='image input and output resolution, default = 352')
 parser.add_argument('--time', action='store_true', default=False)
 args = parser.parse_args()
 
-if torch.cuda.is_available():
-    device = torch.device('cuda')
-else:
-    device = torch.device('cpu')
+device = torch.device(args.device)
+print('Device: {}'.format(device))
 
 if args.attention and args.darknet:
     model = CPD_darknet_A().to(device)

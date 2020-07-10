@@ -259,7 +259,7 @@ class CPD_darknet19_A(nn.Module):
 
 class CPD_darknet_A(nn.Module):
     def __init__(self, channel=32):
-        super(CPD_darknet, self).__init__()
+        super(CPD_darknet_A, self).__init__()
         self.name = 'CPD_darknet_A'
         self.vgg = Darknet()
         self.rfb3_1 = RFB(128, channel)

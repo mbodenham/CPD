@@ -36,7 +36,7 @@ def train(train_loader, model, optimizer, epoch, writer):
         imgs, gts, _, _, _ = pack
         imgs = imgs.to(device)
         gts = gts.to(device)
-        if args.attention:
+        if '_A' in model.name:
             preds = model(imgs)
             loss = CE(preds, gts)
             writer.add_scalar('Loss', float(loss), global_step)

@@ -57,6 +57,12 @@ class Darknet19(nn.Module):
         conv5_1.add_module('conv5_1_3', nn.Conv2d(256, 512, 3, 1, 1, bias=False))
         conv5_1.add_module('bn5_1_3', nn.BatchNorm2d(512))
         conv5_1.add_module('relu5_1_3', nn.LeakyReLU(0.1, inplace=True))
+        conv5_1.add_module('conv5_1_4', nn.Conv2d(512, 256, 1, 1, 0, bias=False))
+        conv5_1.add_module('bn5_1_4', nn.BatchNorm2d(256))
+        conv5_1.add_module('relu5_1_4', nn.LeakyReLU(0.1, inplace=True))
+        conv5_1.add_module('conv5_1_5', nn.Conv2d(256, 512, 3, 1, 1, bias=False))
+        conv5_1.add_module('bn5_1_5', nn.BatchNorm2d(512))
+        conv5_1.add_module('relu5_1_5', nn.LeakyReLU(0.1, inplace=True))
         self.conv5_1 = conv5_1
 
         conv4_2 = nn.Sequential()
@@ -83,6 +89,12 @@ class Darknet19(nn.Module):
         conv5_2.add_module('conv5_2_3', nn.Conv2d(256, 512, 3, 1, 1, bias=False))
         conv5_2.add_module('bn5_2_3', nn.BatchNorm2d(512))
         conv5_2.add_module('relu5_2_3', nn.LeakyReLU(0.1, inplace=True))
+        conv5_2.add_module('conv5_2_4', nn.Conv2d(512, 256, 1, 1, 0, bias=False))
+        conv5_2.add_module('bn5_2_4', nn.BatchNorm2d(256))
+        conv5_2.add_module('relu5_2_4', nn.LeakyReLU(0.1, inplace=True))
+        conv5_2.add_module('conv5_2_5', nn.Conv2d(256, 512, 3, 1, 1, bias=False))
+        conv5_2.add_module('bn5_2_5', nn.BatchNorm2d(512))
+        conv5_2.add_module('relu5_2_5', nn.LeakyReLU(0.1, inplace=True))
         self.conv5_2 = conv5_2
 
         weights = torch.load('darknet19.pth')
@@ -256,7 +268,6 @@ class Darknet19(nn.Module):
         self.conv5_1.bn5_1_2.num_batches_tracked.data.copy_(weights[keys[i]])
         self.conv5_2.bn5_2_2.num_batches_tracked.data.copy_(weights[keys[i]])
         i+=1
-
         self.conv5_1.conv5_1_3.weight.data.copy_(weights[keys[i]])
         self.conv5_2.conv5_2_3.weight.data.copy_(weights[keys[i]])
         i+=1
@@ -274,7 +285,43 @@ class Darknet19(nn.Module):
         i+=1
         self.conv5_1.bn5_1_3.num_batches_tracked.data.copy_(weights[keys[i]])
         self.conv5_2.bn5_2_3.num_batches_tracked.data.copy_(weights[keys[i]])
-
+        i+=1
+        self.conv5_1.conv5_1_4.weight.data.copy_(weights[keys[i]])
+        self.conv5_2.conv5_2_4.weight.data.copy_(weights[keys[i]])
+        i+=1
+        self.conv5_1.bn5_1_4.weight.data.copy_(weights[keys[i]])
+        self.conv5_2.bn5_2_4.weight.data.copy_(weights[keys[i]])
+        i+=1
+        self.conv5_1.bn5_1_4.bias.data.copy_(weights[keys[i]])
+        self.conv5_2.bn5_2_4.bias.data.copy_(weights[keys[i]])
+        i+=1
+        self.conv5_1.bn5_1_4.running_mean.data.copy_(weights[keys[i]])
+        self.conv5_2.bn5_2_4.running_mean.data.copy_(weights[keys[i]])
+        i+=1
+        self.conv5_1.bn5_1_4.running_var.data.copy_(weights[keys[i]])
+        self.conv5_2.bn5_2_4.running_var.data.copy_(weights[keys[i]])
+        i+=1
+        self.conv5_1.bn5_1_4.num_batches_tracked.data.copy_(weights[keys[i]])
+        self.conv5_2.bn5_2_4.num_batches_tracked.data.copy_(weights[keys[i]])
+        i+=1
+        self.conv5_1.conv5_1_5.weight.data.copy_(weights[keys[i]])
+        self.conv5_2.conv5_2_5.weight.data.copy_(weights[keys[i]])
+        i+=1
+        self.conv5_1.bn5_1_5.weight.data.copy_(weights[keys[i]])
+        self.conv5_2.bn5_2_5.weight.data.copy_(weights[keys[i]])
+        i+=1
+        self.conv5_1.bn5_1_5.bias.data.copy_(weights[keys[i]])
+        self.conv5_2.bn5_2_5.bias.data.copy_(weights[keys[i]])
+        i+=1
+        self.conv5_1.bn5_1_5.running_mean.data.copy_(weights[keys[i]])
+        self.conv5_2.bn5_2_5.running_mean.data.copy_(weights[keys[i]])
+        i+=1
+        self.conv5_1.bn5_1_5.running_var.data.copy_(weights[keys[i]])
+        self.conv5_2.bn5_2_5.running_var.data.copy_(weights[keys[i]])
+        i+=1
+        self.conv5_1.bn5_1_5.num_batches_tracked.data.copy_(weights[keys[i]])
+        self.conv5_2.bn5_2_5.num_batches_tracked.data.copy_(weights[keys[i]])
+        
 class Darknet19_A(nn.Module):
     # VGG16 with two branches
     # pooling layer at the front of block
@@ -483,11 +530,11 @@ class Darknet19_A(nn.Module):
         i+=1
         self.conv5_1.bn5_1_3.num_batches_tracked.data.copy_(weights[keys[i]])
 
-class Darknet(nn.Module):
+class Darknet_A(nn.Module):
     # VGG16 with two branches
     # pooling layer at the front of block
     def __init__(self):
-        super(Darknet, self).__init__()
+        super(Darknet_A, self).__init__()
         conv1 = nn.Sequential()
         conv1.add_module('conv1_1', nn.Conv2d(3, 16, 3, 1, 1, bias=False))
         conv1.add_module('bn1_1', nn.BatchNorm2d(16))
@@ -526,32 +573,13 @@ class Darknet(nn.Module):
         conv5_1.add_module('relu5_1_1', nn.LeakyReLU(0.1, inplace=True))
         self.conv5_1 = conv5_1
 
-        conv4_2 = nn.Sequential()
-        conv4_2.add_module('maxpool4_2', nn.MaxPool2d(2, stride=2))
-        conv4_2.add_module('conv4_2_1', nn.Conv2d(128, 256, 3, 1, 1, bias=False))
-        conv4_2.add_module('bn4_2_1', nn.BatchNorm2d(256))
-        conv4_2.add_module('relu4_2_1', nn.LeakyReLU(0.1, inplace=True))
-        self.conv4_2 = conv4_2
-
-        conv5_2 = nn.Sequential()
-        conv5_2.add_module('maxpool5_1', nn.MaxPool2d(2, stride=2))
-        conv5_2.add_module('conv5_2_1', nn.Conv2d(256, 512, 3, 1, 1, bias=False))
-        conv5_2.add_module('bn5_2_1', nn.BatchNorm2d(512))
-        conv5_2.add_module('relu5_2_1', nn.LeakyReLU(0.1, inplace=True))
-        self.conv5_2 = conv5_2
-
-        weights = torch.load('darknet19.pth')
-        self._initialize_weights(weights)
-
     def forward(self, x):
         x = self.conv1(x)
         x = self.conv2(x)
         x = self.conv3(x)
         x1 = self.conv4_1(x)
         x1 = self.conv5_1(x1)
-        x2 = self.conv4_2(x)
-        x2 = self.conv5_2(x2)
-        return x1, x2
+        return x1
 
 if __name__ == '__main__':
 
