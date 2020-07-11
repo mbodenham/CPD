@@ -9,15 +9,14 @@ import numpy as np
 import pdb, os, argparse
 
 from model.dataset import ImageGroundTruthFolder
-from model.models import CPD, CPD_A, CPD_darknet19, CPD_darknet19_A
+from model.models import CPD, CPD_A, CPD_darknet19, CPD_darknet19_A, CPD_darknet_A
 
 parser = argparse.ArgumentParser()
 parser.add_argument('--datasets_path', type=str, default='./datasets/test', help='path to datasets, default = ./datasets/test')
 parser.add_argument('--save_path', type=str, default='./results', help='path to save results, default = ./results')
 parser.add_argument('--pth', type=str, default='CPD.pth', help='model filename, default = CPD.pth')
 parser.add_argument('--device', default='cuda', choices=['cuda', 'cpu'], help='use cuda or cpu, default = cuda')
-parser.add_argument('--attention', action='store_true', default=False, help='use attention branch model')
-parser.add_argument('--darknet', action='store_true', help='use darknet backbone')
+parser.add_argument('--model', default='CPD', choices=['CPD', 'CPD_A', 'CPD_darknet19', 'CPD_darknet19_A', 'CPD_darknet_A'], help='chose model, default = cuda')
 parser.add_argument('--imgres', type=int, default=352, help='image input and output resolution, default = 352')
 parser.add_argument('--time', action='store_true', default=False)
 args = parser.parse_args()
@@ -25,14 +24,16 @@ args = parser.parse_args()
 device = torch.device(args.device)
 print('Device: {}'.format(device))
 
-if args.attention and args.darknet:
-    model = CPD_darknet_A().to(device)
-elif args.attention:
-    model = CPD_A().to(device)
-elif args.darknet:
-    model = CPD_darknet().to(device)
-else:
+if args.model == 'CPD':
     model = CPD().to(device)
+elif args.model == 'CPD_A':
+    model = CPD_A().to(device)
+elif args.model == 'CPD_darknet19':
+    model = CPD_darknet19().to(device)
+elif args.model == 'CPD_darknet19_A':
+    model = CPD_darknet19_A().to(device)
+elif args.model == 'CPD_darknet_A':
+    model = CPD_darknet_A().to(device)
 
 model.load_state_dict(torch.load(args.pth, map_location=torch.device(device)))
 model.eval()

@@ -3,7 +3,7 @@ import torch.nn as nn
 
 from .HolisticAttention import HA
 from .vgg import B2_VGG, B2_VGG_A
-from .darknet import Darknet19, Darknet19_A, Darknet
+from .darknet import Darknet19, Darknet19_A, Darknet_A
 
 
 class RFB(nn.Module):
@@ -178,7 +178,7 @@ class CPD_A(nn.Module):
 class CPD_darknet19(nn.Module):
     def __init__(self, channel=32):
         super(CPD_darknet19, self).__init__()
-        self.name = 'CPD_darknet'
+        self.name = 'CPD_darknet19'
         self.vgg = Darknet19()
         self.rfb3_1 = RFB(128, channel)
         self.rfb4_1 = RFB(256, channel)
