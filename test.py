@@ -55,7 +55,7 @@ if args.time:
         t0 = time.time()
         with torch.autograd.profiler.profile() as prof:
             for img in input:
-                if args.attention:
+                if '_A' in model.name:
                     pred = model(img)
                 else:
                     _, pred = model(img)
@@ -73,7 +73,7 @@ else:
         print('{} - {}'.format(dataset[0], img_name[0]))
         img = img.to(device)
 
-        if args.attention:
+        if '_A' in model.name:
             pred = model(img)
         else:
             _, pred = model(img)
