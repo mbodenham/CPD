@@ -1,5 +1,7 @@
 # Cascaded Partial Decoder for Fast and Accurate Salient Object Detection (CVPR2019)
 
+https://drive.google.com/file/d/1gBFWGrjt0hBIW1I9IOoUJYTF-C1CwPfr/view?usp=sharing
+
 # Documentation
 CPD ranks first in the challenging [SOC benchmark](http://dpfan.net/SOCBenchmark/) [2019.11.6].
 
